@@ -75,6 +75,13 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 
 ---
 
+## Version Control
+
+- Refactoring-only changes must be committed separately from logic changes.
+- Tests must pass after any refactoring commit before logic changes are introduced.
+  
+---
+
 ## Code Rules
 
 - Access fields via properties, not directly. Exception: inside the owning class constructor.
