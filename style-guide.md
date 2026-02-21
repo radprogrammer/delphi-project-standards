@@ -1,8 +1,9 @@
 # RADProgrammer Delphi Style Guide
 - Source: https://github.com/radprogrammer/delphi-projects-standards/style-guide.md
-- Version: 2.0
+- Version: 2.1
 
 ## Changelog
+- 2.1 (2026-02-20): Added source file conventions (CRLF, ASCII), constants typing rules, magic number rules, Cardinal/Int64 safety rules, platform unit guidance
 - 2.0 (2026-02-20): Converted to markdown instruction file for AI Agents
 - 1.0 (2021-03-14): radteam wiki initial release
 
@@ -19,22 +20,21 @@ AI Agents should apply these conventions to all generated and modified Delphi co
 
 All identifiers use PascalCase. No underscores. No Hungarian notation.
 
-| Identifier            | Prefix / Suffix     | Example                  |
-|-----------------------|---------------------|--------------------------|
-| Class                 | `T`                 | `TMyClass`               |
-| Exception class       | `E`                 | `EInvalidOp`             |
-| Interface             | `I`                 | `IMyInterface`           |
-| Field                 | `F`                 | `FUserName`              |
-| Pointer type          | `P`                 | `PInteger`               |
-| Method parameter      | `A`                 | `AUserName`              |
-| Event handler         | `On`                | `OnMyExampleEvent`       |
-| Event executor        | `Do`                | `DoMyExampleEvent`       |
-| [Class constructor](https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors)     | `CreateClass`       | `class constructor CreateClass` |
-| Class destructor      | `DestroyClass`      | `class destructor DestroyClass` |
-| Test class            | suffix `Test`       | `TMyClassTest`           |
-| Versioned interface   | suffix `2`, `3`...  | `IMyInterface2`          |
-| Custom Attributes     | end with 'Attribute' | `MyExampleAttribute`    |
-
+| Identifier            | Prefix / Suffix      | Example                         |
+|-----------------------|----------------------|---------------------------------|
+| Class                 | `T`                  | `TMyClass`                      |
+| Exception class       | `E`                  | `EInvalidOp`                    |
+| Interface             | `I`                  | `IMyInterface`                  |
+| Field                 | `F`                  | `FUserName`                     |
+| Pointer type          | `P`                  | `PInteger`                      |
+| Method parameter      | `A`                  | `AUserName`                     |
+| Event handler         | `On`                 | `OnMyExampleEvent`              |
+| Event executor        | `Do`                 | `DoMyExampleEvent`              |
+| [Class constructor](https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors) | `CreateClass` | `class constructor CreateClass` |
+| Class destructor      | `DestroyClass`       | `class destructor DestroyClass` |
+| Test class            | suffix `Test`        | `TMyClassTest`                  |
+| Versioned interface   | suffix `2`, `3`...   | `IMyInterface2`                 |
+| Custom Attributes     | end with `Attribute` | `MyExampleAttribute`            |
 
 ### Additional Naming Rules
 
@@ -53,6 +53,14 @@ All identifiers use PascalCase. No underscores. No Hungarian notation.
 
 ---
 
+## Source File Conventions
+
+- **Line endings:** All Delphi source files use CRLF (`\r\n`) line endings.
+- **Encoding:** UTF-8 without BOM, ASCII characters only in source code. AI agents must not use Unicode characters (em dashes, curly quotes, ellipsis, arrows, emoji, or other non-ASCII characters) in identifiers, string literals, or comments unless the feature explicitly requires them — do not substitute fancy Unicode punctuation for plain ASCII equivalents.
+- **Default parameter values** must be repeated verbatim in the implementation section, matching the interface declaration exactly.
+
+---
+
 ## Source File Layout Order
 Most of your Delphi code will reside in .pas source files. These files have a few requirements determined by the compiler and also some preferences dictated by this style guide.
 
@@ -68,10 +76,10 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 
 ## Avoid these language items
 - `with` statements
-- `goto` statments
+- `goto` statements
 - Inline variables (`var x := ...` in Delphi 10.3+)
 - Multi-line string literals (Delphi 12+)
-- `System.DateUtils`: `YearsBetween`, `MonthsBetween`, `YearSpan`, `MonthSpan` 
+- `System.DateUtils`: `YearsBetween`, `MonthsBetween`, `YearSpan`, `MonthSpan`
 
 ---
 
@@ -79,7 +87,7 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 
 - Refactoring-only changes must be committed separately from logic changes.
 - Tests must pass after any refactoring commit before logic changes are introduced.
-  
+
 ---
 
 ## Code Rules
@@ -92,5 +100,31 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 - `uses` clause order: RTL -> System Library -> VCL/FMX -> Third Party -> Shared -> Project-specific.
 - Add units to the `implementation` uses clause unless they are required in the `interface`.
 - The **Unit Scope Names** project setting should be empty. All unit references should be fully qualified (e.g. `System.SysUtils`, not `SysUtils`). Auto-generated and third-party code are exempt.
+
+### Constants
+
+- Magic numbers in code must be replaced with named constants. Each named constant should include a comment explaining why that specific value was chosen over alternatives.
+- Constants should always be explicitly typed **except** when used as a default parameter value, in which case they must be untyped. Add a comment at the declaration explaining the exception:
+  ```delphi
+  const
+    MAX_RETRIES = 3;  // Untyped -- required because used as a default parameter value.
+                      // Delphi requires default parameter values to be constant expressions;
+                      // typed constants do not satisfy this requirement.
+  ```
+
+### Integer and Timing Arithmetic
+
+- `TStopwatch` is the preferred timing mechanism — it is monotonic and has no wraparound. Never use `GetTickCount` or `TThread.GetTickCount` for elapsed time measurement.
+- Never perform arithmetic on `TStopwatch.ElapsedMilliseconds` (which is `Int64`) using `Cardinal` variables. Perform all arithmetic in `Int64` space and only narrow to `Cardinal` at the final assignment, after a guard confirms the value fits:
+  ```delphi
+  Elapsed := Sw.ElapsedMilliseconds;       // Int64
+  if Elapsed >= MaxMs then Exit(False);
+  Remaining := Cardinal(MaxMs - Elapsed);  // safe: Elapsed < MaxMs guaranteed
+  ```
+- `Cardinal` subtraction can underflow silently (or raise `EIntOverflow` with overflow checking enabled). Always guard before subtracting two `Cardinal` values.
+
+### Platform Targeting
+
+- Do not use platform-specific units (e.g. `Winapi.*`) unless the feature explicitly requires them. Code should target all RTL-supported platforms unless the project `CLAUDE.md` states otherwise.
 
 ---
