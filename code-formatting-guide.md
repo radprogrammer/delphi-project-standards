@@ -184,11 +184,6 @@ Empty line counts below are **minimums between declarations** and **ceilings wit
 The original RAD Studio formatter configuration predates several modern Delphi language features.
 These rules extend the guide to cover them consistently.
 
-### Inline Variables
-Inline variables (`var x := ...`) are avoided in this codebase — see `style-guide.md`. No
-formatting rules are defined for them. If encountered in third-party or auto-generated code,
-leave their formatting as-is.
-
 ### Multi-line String Literals (Delphi 12+)
 Multi-line string literals are used sparingly — see `style-guide.md`. When they do appear:
 - The opening `{` of the literal aligns with the surrounding statement's indent level

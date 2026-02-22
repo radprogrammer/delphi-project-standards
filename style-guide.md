@@ -153,7 +153,6 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 ## Avoid these language items
 - `with` statements
 - `goto` statements
-- Inline variables (`var x := ...` in Delphi 10.3+)
 - Multi-line string literals (Delphi 12+)
 - `System.DateUtils`: `YearsBetween`, `MonthsBetween`, `YearSpan`, `MonthSpan`
 

@@ -1,6 +1,10 @@
 ## Changelog
 https://github.com/radprogrammer/delphi-project-standards
 
+### 2.4 (2026-02-22)
+- `style-guide.md`: Remove restriction on using inline variables (much of the remaining tooling issues are
+no longer applicable after code formatting and refactoring removals in 13+)
+
 ### 2.3 (2026-02-22)
 - `style-guide.md`: Expanded spacing and indentation rules; added explicit begin/end and if statement rules;
 added assertions policy; discouraged multiple declarations on one line
