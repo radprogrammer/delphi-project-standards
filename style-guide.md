@@ -1,8 +1,9 @@
-# RADProgrammer Delphi Style Guide
+﻿# RADProgrammer Delphi Style Guide
 - Source: https://github.com/radprogrammer/delphi-projects-standards/style-guide.md
-- Version: 2.1
+- Version: 2.2
 
 ## Changelog
+- 2.2 (2026-02-22): Started new Project Structure Conventions section
 - 2.1 (2026-02-20): Added source file conventions (CRLF, ASCII), constants typing rules, magic number rules, Cardinal/Int64 safety rules, platform unit guidance
 - 2.0 (2026-02-20): Converted to markdown instruction file for AI Agents
 - 1.0 (2021-03-14): radteam wiki initial release
@@ -83,6 +84,26 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 
 ---
 
+## Project Structure Conventions
+
+- Every `.dpr` project must live in its own dedicated directory.
+- Each project directory must contain a `readme.md` serving as its entry-point
+  documentation.
+- The corresponding `.dproj` must reference the readme.md via the `WelcomePageFile`
+  element so it is displayed when the project is opened within the IDE:
+  ```xml
+  <Delphi.Personality>
+    <Source>
+      <Source Name="MainSource">MyProject.dpr</Source>
+    </Source>
+    <WelcomePageFile Path="readme.md"/>
+  </Delphi.Personality>
+  ```
+  This can also be set via `Project -> Project Page Options... -> Project page`
+  within the IDE.
+
+---
+
 ## Version Control
 
 - Refactoring-only changes must be committed separately from logic changes.
@@ -128,3 +149,4 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 - Do not use platform-specific units (e.g. `Winapi.*`) unless the feature explicitly requires them. Code should target all RTL-supported platforms unless the project `CLAUDE.md` states otherwise.
 
 ---
+
