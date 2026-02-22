@@ -1,9 +1,10 @@
 ﻿# RADProgrammer Delphi Style Guide
-- Source: https://github.com/radprogrammer/delphi-projects-standards/style-guide.md
-- Version: 2.2
+- Source: https://github.com/radprogrammer/delphi-project-standards/style-guide.md
+- Version: 2.3
 
 ## Changelog
-- 2.2 (2026-02-22): Started new Project Structure Conventions section
+- 2.3 (2026-02-22): Expanded spacing and indentation rules; added explicit begin/end and if statement rules; added assertions policy; discouraged multiple declarations on one line
+- 2.2 (2026-02-22): Added Project Structure Conventions section
 - 2.1 (2026-02-20): Added source file conventions (CRLF, ASCII), constants typing rules, magic number rules, Cardinal/Int64 safety rules, platform unit guidance
 - 2.0 (2026-02-20): Converted to markdown instruction file for AI Agents
 - 1.0 (2021-03-14): radteam wiki initial release
@@ -28,7 +29,7 @@ All identifiers use PascalCase. No underscores. No Hungarian notation.
 | Interface             | `I`                  | `IMyInterface`                  |
 | Field                 | `F`                  | `FUserName`                     |
 | Pointer type          | `P`                  | `PInteger`                      |
-| Method parameter      | `A`                  | `AUserName`                     |
+| Method parameter      | `A` (recommended)    | `AUserName`                     |
 | Event handler         | `On`                 | `OnMyExampleEvent`              |
 | Event executor        | `Do`                 | `DoMyExampleEvent`              |
 | [Class constructor](https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors) | `CreateClass` | `class constructor CreateClass` |
@@ -40,7 +41,7 @@ All identifiers use PascalCase. No underscores. No Hungarian notation.
 ### Additional Naming Rules
 
 - **Enums:** PascalCase, no prefix. Prefer fully qualified references everywhere. Bare names are acceptable within the declaring unit but should be avoided for consistency.
-- **Constants:** If inside a class, no prefix — reference fully qualified externally. If outside a class, use UPPERCASE.
+- **Constants:** If inside a class, no prefix — reference fully qualified externally. If outside a class, use UPPERCASE.   Constants should be class-scoped where possible.
 - **Booleans:** Positive naming only, using `is`, `has`, `can`, or `should` prefixes (e.g. `IsActive`, not `IsNotActive`).
 - **Methods:** verb+noun form (`CalculateTotal`, `ValidateInput`).
 - **Form components:** Descriptive suffix-based names (`DeleteFileButton`, not `Button1` or `butDelete`).
@@ -62,7 +63,86 @@ All identifiers use PascalCase. No underscores. No Hungarian notation.
 
 ---
 
+## Spacing and Indentation
+
+- **Indentation unit:** 2 spaces per level. Never use tabs. The Delphi IDE converts tabs to spaces by default -- leave this setting on.
+- **No space** before the colon in a variable or parameter declaration:
+  ```delphi
+  MyInteger: Integer;   // correct
+  MyInteger : Integer;  // incorrect
+  ```
+- **No space** before the opening parenthesis of a function or procedure call or declaration:
+  ```delphi
+  MyFunc(42);                        // correct
+  procedure DoSomething(A: Integer); // correct
+  MyFunc (42);                       // incorrect
+  ```
+- **No space** inside parentheses or square brackets:
+  ```delphi
+  MyFunc(A, B);    // correct
+  MyArray[5];      // correct
+  MyFunc( A, B );  // incorrect
+  MyArray[ 5 ];    // incorrect
+  ```
+- **Space after** commas and semicolons in parameter lists.
+- **Spaces before and after** the `:=` assignment operator and all binary operators.
+- **Line length:** aim to keep lines within screen width to avoid horizontal scrolling. 120 columns is a practical upper bound for generated code.
+
+---
+
+## begin / end and Block Formatting
+
+- **`begin` and `end` always on their own lines.** Never place `begin` on the same line as `then`, `do`, or `else`:
+  ```delphi
+  // Correct
+  if A < B then
+  begin
+    DoSomething;
+  end
+  else
+  begin
+    DoThat;
+  end;
+
+  // Incorrect
+  if A < B then begin
+    DoSomething;
+  end else begin
+    DoThat;
+  end;
+  ```
+- Each line contains at most one statement.
+
+---
+
+## if Statements
+
+- **Always span at least two lines.** Never place the statement on the same line as the condition:
+  ```delphi
+  // Correct
+  if A < B then
+    DoSomething;
+
+  // Incorrect
+  if A < B then DoSomething;
+  ```
+- **No extra parentheses** around boolean conditions:
+  ```delphi
+  if A < B then    // correct
+  if (A < B) then  // incorrect
+  ```
+- **`else if` stays on one line** -- no line break between `else` and `if`:
+  ```delphi
+  if Condition1 then
+    DoThis
+  else if Condition2 then
+    DoThat;
+  ```
+
+---
+
 ## Source File Layout Order
+
 Most of your Delphi code will reside in .pas source files. These files have a few requirements determined by the compiler and also some preferences dictated by this style guide.
 
 1. Comment header (description, copyright, history)
@@ -87,8 +167,7 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 ## Project Structure Conventions
 
 - Every `.dpr` project must live in its own dedicated directory.
-- Each project directory must contain a `readme.md` serving as its entry-point
-  documentation.
+- Each project directory must contain a `readme.md` serving as its entry-point documentation.
 - The corresponding `.dproj` must reference the readme.md via the `WelcomePageFile`
   element so it is displayed when the project is opened within the IDE:
   ```xml
@@ -114,13 +193,34 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 ## Code Rules
 
 - Access fields via properties, not directly. Exception: inside the owning class constructor.
-- Use `const` for parameters that are not modified.
+- Use `const` for parameters of managed types (strings, interfaces) that are not modified. For unmanaged types, const is not required but is recommended when it improves clarity about intent.
 - Use guard clauses with `Exit` to reduce nesting. Use `Exit` sparingly outside of guard clauses.
 - `case` statements on enums must list all values explicitly. Use `Assert(False, 'Unhandled enum value')` in the `else` branch.
 - Functions that perform operations which can fail must return an enumerated result type rather than `Boolean`.
 - `uses` clause order: RTL -> System Library -> VCL/FMX -> Third Party -> Shared -> Project-specific.
 - Add units to the `implementation` uses clause unless they are required in the `interface`.
 - The **Unit Scope Names** project setting should be empty. All unit references should be fully qualified (e.g. `System.SysUtils`, not `SysUtils`). Auto-generated and third-party code are exempt.
+- Do not declare multiple identifiers of the same type on a single line. Each declaration belongs on its own line. Multiple declarations on one line make version control diffs harder to read and review:
+  ```delphi
+  // Correct
+  var
+    MyData: Integer;
+    MyString: string;
+
+  // Incorrect
+  var
+    MyData, MyOtherData: Integer;
+  ```
+
+### Assertions
+
+- Use assertions to test logical invariants -- conditions that must always be true regardless of input or execution state, such as parameter preconditions and object invariants.
+- Always include an explanatory string describing which expected condition is failing:
+  ```delphi
+  Assert(AValue > 0, 'AValue must be positive');
+  ```
+- Do not use assertions to test conditions that depend on program execution, user input, OS configuration, or any general error condition. Use exceptions for those cases.
+- Assertions may be disabled in release builds -- never rely on them for runtime error handling in production code.
 
 ### Constants
 
@@ -149,4 +249,3 @@ Most of your Delphi code will reside in .pas source files. These files have a fe
 - Do not use platform-specific units (e.g. `Winapi.*`) unless the feature explicitly requires them. Code should target all RTL-supported platforms unless the project `CLAUDE.md` states otherwise.
 
 ---
-
