@@ -4,6 +4,8 @@ https://github.com/radprogrammer/delphi-project-standards
 Coding standards and formatting guidelines for Delphi projects, maintained as AI agent
 instruction files for use with Claude Code and similar tools.
 
+<img width="1536" height="1024" alt="Delphi Project Standards logo" src="https://github.com/user-attachments/assets/a6e9206a-7c22-4521-a895-76485efc006c" />
+
 ---
 
 ## Contents
