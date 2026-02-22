@@ -1,16 +1,15 @@
-# RADProgrammer Delphi Formatting Guide
-Version: 2.0 | 2026-02-20
-
-## Changelog
-- 2.0 (2026-02-20): Converted to markdown instruction file for AI Agents
-- 1.0 (2021-03-14): radteam wiki initial release
+﻿# RADProgrammer Delphi Formatting Guide
+- Source: https://github.com/radprogrammer/delphi-project-standards
+- Last updated: 2026-02-20
 
 ---
 
-This file is consumed by Claude Code via `@.delphi/code-formatting-guide.md` in `CLAUDE.md`.
-Apply these formatting rules when **generating new code** unless a project-level `CLAUDE.md`
-explicitly overrides a rule. These rules are not intended to be used to reformat entire existing
-files — use the RAD Studio formatter (or equivalent tool) for whole-file reformatting.
+# Delphi Coding Standards
+
+Imported via `@.delphi/code-formatting-guide.md` in the project's `CLAUDE.md`.
+AI Agents should apply these conventions to all generated and modified Delphi code
+unless a project-level `CLAUDE.md` explicitly overrides a rule. For whole-file
+reformatting of existing code, prefer dedicated formatting tools over manual edits.
 
 ---
 
