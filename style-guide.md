@@ -2,6 +2,14 @@
 - Source: https://github.com/radprogrammer/delphi-project-standards
 - Last updated: 2026-02-22
 
+- These rules are modeled after Embarcadero's published style guidelines found at:
+  https://docwiki.embarcadero.com/RADStudio/en/Delphi%E2%80%99s_Object_Pascal_Style_Guide
+
+Noted differences from their style guide:
+  - They use `PascalCase` for all constants; we use `UPPERCASE` for constants outside classes to preserve historical convention and flag them as candidates for encapsulation
+  - They do not address `with` or `goto` statements, whereas we explicitly prohibit both
+  - They do not address `multi-line string literals`; we recommend using them sparingly due to tooling issues
+
 ---
 
 # Delphi Coding Standards
