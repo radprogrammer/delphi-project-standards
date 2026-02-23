@@ -572,15 +572,14 @@ No blank lines immediately before visibility modifiers (`public`, `private`,
 
 ## Capitalization
 
-### FMT-045 (Fail): Reserved words and language directives lowercase
-Reserved words (`if`, `then`, `begin`, `end`, `array`, etc.) and language directives
-(`abstract`, `virtual`, `override`, `deprecated`, `platform`, `inline`, etc.)
-must be lowercase.
+### FMT-045 (Fail): Bare keywords in code are lowercase
+All keywords that appear directly in code -- reserved words (`if`, `then`, `begin`,
+`end`, `array`) and language directives (`abstract`, `virtual`, `override`,
+`deprecated`, `platform`, `inline`) -- must be lowercase.
 
-### FMT-046 (Fail): Compiler switch directives UPPERCASE
-Compiler switch directives (`{$IFDEF}`, `{$WARNINGS}`, `{$R+}`, etc.) must be
-UPPERCASE. These are distinct from language directives and follow the opposite
-casing convention.
+### FMT-046 (Fail): Compiler directives in {$ } are UPPERCASE
+Compiler directives wrapped in `{$...}` or `(*$...*)`  must be UPPERCASE:
+`{$IFDEF}`, `{$WARNINGS}`, `{$R+}`, etc.
 
 ### FMT-047 (Fail): Hex and float literals UPPERCASE
 Hexadecimal and floating point literals must be UPPERCASE.
