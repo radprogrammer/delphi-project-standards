@@ -106,9 +106,9 @@ type
   end;
 ```
 
-### FMT-007 (Fail): Compiler directives indented as statements
-Compiler directives (`{$IFDEF}` etc.) are indented at the same level as the
-surrounding statements, not at the left margin.
+### FMT-007 (Fail): Compiler switch directives ({$...}) indented as statements
+Compiler switch directives (`{$IFDEF}`, `{$ENDIF}`, etc.) are indented at the same
+level as the surrounding statements, not at the left margin.
 
 ```delphi
 // correct
@@ -133,7 +133,19 @@ Contents of `interface` and `implementation` sections are not indented.
 
 ### FMT-009 (Fail): Nested brackets/parentheses not extra-indented
 Do not add extra indentation for nested brackets or parentheses beyond the standard
-2-space rule.
+2-space continuation indent. Each nesting level does not add another indent.
+
+```delphi
+// correct -- no extra indent per nesting level
+Result := SomeFunc(
+  AnotherFunc(
+    Value));
+
+// incorrect -- extra indent added for each nesting level
+Result := SomeFunc(
+    AnotherFunc(
+        Value));
+```
 
 ### FMT-010 (Fail): Nested functions indented relative to parent
 Inner (nested) functions and procedures are indented 2 spaces relative to their
@@ -153,8 +165,11 @@ end;
 ```
 
 ### FMT-011 (Fail): Function/procedure body not indented
-The `var` block and `begin` of a function or procedure body are at column 0 relative to the procedure declaration.
-Statements inside the begin/end block are indented 2 spaces relative to begin.
+The `var` block and `begin` of a function or procedure body are at column 0 relative
+to the procedure declaration. Statements inside the `begin`/`end` block are indented
+2 spaces relative to `begin`. This is consistent with FMT-002 -- `begin` aligns with
+the `procedure`/`function` declaration, which is itself at column 0.
+
 ```delphi
 procedure TMyClass.DoSomething;
 var
@@ -218,8 +233,14 @@ function Foo: Boolean  // correct
 i : Integer;           // incorrect
 ```
 
-### FMT-014 (Fail): No spaces in format parameter colons
-Colons used in `write`/`writeln` format parameters have no spaces.
+### FMT-014 (Fail): No spaces in write/writeln format parameter colons
+Colons used as field-width and precision separators in `write`/`writeln` format
+specifiers have no spaces before or after them.
+
+```delphi
+writeln(Value:10:2);   // correct -- field width 10, 2 decimal places
+writeln(Value : 10);   // incorrect
+```
 
 ### FMT-015 (Fail): Space after commas and semicolons
 A single space follows each comma and semicolon. No space before.
@@ -250,8 +271,9 @@ A :=B;   // incorrect
 ```
 
 ### FMT-018 (Fail): Spaces before and after binary operators
-Binary operators including, but not limited to: (`+`, `-`, `*`, `/`, `=`, `<>`, `<`, `>`, `<=`, `>=`, `or`, `and`,
-`xor`, `div`, `mod`) must have a single space before and after.
+Binary operators (including but not limited to: `+`, `-`, `*`, `/`, `=`, `<>`, `<`,
+`>`, `<=`, `>=`, `or`, `and`, `xor`, `div`, `mod`) must have a single space before
+and after.
 
 ```delphi
 A := B + C * D;  // correct
@@ -360,23 +382,28 @@ else
     DoThat;
 ```
 
-### FMT-026 (Fail): Single instruction after if/case/loop on its own line
-A single instruction following `if`, `case`, or a loop goes on its own line,
-indented 2 spaces. It does not share the line with `then` or `do`.
+### FMT-026 (Fail): Single instruction after if/case/for/while/repeat on its own line
+A single instruction following `if`, `case`, `for`, `while`, or `repeat` goes on its
+own line, indented 2 spaces. It does not share the line with `then` or `do`.
 
 ```delphi
 // correct
 if i > 10 then
   j := 3;
 
+for I := 0 to Count - 1 do
+  Process(I);
+
 // incorrect
 if i > 10 then j := 3;
+for I := 0 to Count - 1 do Process(I);
 ```
 
 ### FMT-027 (Fail): Single instruction in try/except/finally on its own line
 A single instruction inside `try`, `except`, or `finally` blocks goes on its own
-line, indented 2 spaces. Inside `except`, the `on E:` clause is indented 2 spaces,
-and the handler body is indented a further 2 spaces relative to the `on` line.
+line, indented 2 spaces. Inside `except`, the `on E:` clause is indented 2 spaces
+relative to `except`, and the handler body is indented a further 2 spaces relative
+to the `on` line.
 
 ```delphi
 // correct
@@ -421,7 +448,17 @@ if (A < B) then  // incorrect
 ```
 
 ### FMT-030 (Fail): One statement per line
-Each line contains at most one statement.
+Each line contains at most one statement. Inline variable declarations in `for` loop
+headers count as one statement and are not subject to STY-023 (one declaration per line).
+
+```delphi
+// correct
+for var I := 0 to Count - 1 do
+  Process(I);
+
+// incorrect -- two statements on one line
+A := 1; B := 2;
+```
 
 ### FMT-031 (Warn): Line length target 200 columns
 Generated code should aim to stay within 200 columns. Lines beyond 200 columns
@@ -440,14 +477,38 @@ uses
 ```
 
 ### FMT-034 (Fail): Each var/const element on its own line
-Each element in `var` and `const` sections appears on its own line.
+Each variable or constant declaration begins on its own line. Array and record
+constant initialisers may span multiple lines -- the declaration itself still
+begins on its own line.
+
+```delphi
+// correct
+const
+  DAYS: array[0..6] of string = (
+    'Mon', 'Tue', 'Wed',
+    'Thu', 'Fri', 'Sat', 'Sun');
+
+// incorrect -- two declarations on one line
+var A, B: Integer;
+```
 
 ---
 
 ## Functions, Properties, and Parameters
 
 ### FMT-035 (Fail): Return type on same line as function name
-The return type stays on the same line as the function name.
+The return type stays on the same line as the function name. For anonymous functions,
+the return type stays on the same line as the `function` keyword.
+
+```delphi
+function GetValue: Integer;  // correct -- named function
+
+FFunc :=
+  function(AValue: Integer): Integer  // correct -- anonymous function
+  begin
+    Result := AValue + 1;
+  end;
+```
 
 ### FMT-036 (Fail): Anonymous method assignments break to next line
 Anonymous method assignments break to the next line after `:=`.
@@ -487,8 +548,8 @@ property MyValue: Integer
 ```
 
 Guidance — parameters: keep function call and definition parameters on one line when
-possible. When wrapping is required, align parameters 2 spaces in from the opening
-parenthesis.
+possible. When wrapping is required, indent continuation lines 2 spaces from the
+opening parenthesis.
 
 Guidance — anonymous methods as parameters:
 
@@ -547,8 +608,11 @@ that fall within the allowed maximum.
 No more than 2 consecutive empty lines anywhere in the file. This is a ceiling -- never
 add more than 2, but preserve up to 2 if the author placed them.
 
-### FMT-039 (Fail): 0 empty lines around compiler directives
-No blank lines immediately before or after compiler directives.
+### FMT-039 (Fail): 0 empty lines around compiler switch directives
+No blank lines immediately before or after compiler switch directives (`{$IFDEF}`,
+`{$ENDIF}`, etc.). When a compiler switch directive immediately precedes or follows
+a method declaration, the 2-line method separation rule (FMT-041) takes priority
+over this rule.
 
 ### FMT-040 (Fail): 1 empty line around section keywords
 One empty line before and after `interface` and `implementation` keywords.
@@ -577,9 +641,10 @@ All keywords that appear directly in code -- reserved words (`if`, `then`, `begi
 `end`, `array`) and language directives (`abstract`, `virtual`, `override`,
 `deprecated`, `platform`, `inline`) -- must be lowercase.
 
-### FMT-046 (Fail): Compiler directives in {$ } are UPPERCASE
-Compiler directives wrapped in `{$...}` or `(*$...*)`  must be UPPERCASE:
-`{$IFDEF}`, `{$WARNINGS}`, `{$R+}`, etc.
+### FMT-046 (Fail): Compiler switch directives in {$...} are UPPERCASE
+Compiler switch directives wrapped in `{$...}` or `(*$...*)` must be UPPERCASE:
+`{$IFDEF}`, `{$WARNINGS}`, `{$R+}`, etc. These are distinct from language directives
+(FMT-045) and follow the opposite casing convention.
 
 ### FMT-047 (Fail): Hex and float literals UPPERCASE
 Hexadecimal and floating point literals must be UPPERCASE.
