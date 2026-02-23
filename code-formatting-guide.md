@@ -153,9 +153,8 @@ end;
 ```
 
 ### FMT-011 (Fail): Function/procedure body not indented
-The `var` block and `begin` of a function or procedure body are at column 0 relative
-to the procedure declaration. The body is not indented as a block.
-
+The `var` block and `begin` of a function or procedure body are at column 0 relative to the procedure declaration.
+Statements inside the begin/end block are indented 2 spaces relative to begin.
 ```delphi
 procedure TMyClass.DoSomething;
 var
@@ -251,7 +250,7 @@ A :=B;   // incorrect
 ```
 
 ### FMT-018 (Fail): Spaces before and after binary operators
-Binary operators (`+`, `-`, `*`, `/`, `=`, `<>`, `<`, `>`, `<=`, `>=`, `or`, `and`,
+Binary operators including, but not limited to: (`+`, `-`, `*`, `/`, `=`, `<>`, `<`, `>`, `<=`, `>=`, `or`, `and`,
 `xor`, `div`, `mod`) must have a single space before and after.
 
 ```delphi
