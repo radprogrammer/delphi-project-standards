@@ -1,0 +1,16 @@
+# Default all text files to LF
+* text=auto eol=lf
+
+# Markdown explicitly LF
+*.md text eol=lf
+
+# Batch files (if ever added) should remain CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Prevent accidental binary normalization
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
