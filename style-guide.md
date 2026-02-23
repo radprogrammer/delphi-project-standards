@@ -95,8 +95,8 @@ procedure SetName(AName: string);  // recommended
 procedure SetName(Name: string);   // acceptable
 ```
 
-### STY-008 (Fail): Reserved words in lowercase
-Language keywords, reserved words, and directives must be lowercase.
+### STY-008 (Fail): Language keywords and reserved words must be lowercase.
+Compiler switch directives in {$...} follow the formatting guide (FMT-046).
 
 ```delphi
 begin end if then else  // correct
@@ -150,7 +150,7 @@ procedure ButtonClickHandler;      // incorrect
 ```
 
 ### STY-013 (Fail): Class constructor named CreateClass
-Class constructors must use the name `CreateClass`.
+By convention, class constructors must use the name `CreateClass`.
 See: https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors
 
 ```delphi
@@ -159,7 +159,7 @@ class constructor Create;       // incorrect
 ```
 
 ### STY-014 (Fail): Class destructor named DestroyClass
-Class destructors must use the name `DestroyClass`.
+By convention, class destructors must use the name `DestroyClass`.
 
 ```delphi
 class destructor DestroyClass;  // correct
@@ -245,8 +245,8 @@ end;
 
 ### STY-021 (Fail): Prohibited DateUtils functions
 The following `System.DateUtils` functions must not be used -- they return imprecise
-floating-point approximations and produce incorrect results near month and year
-boundaries:
+floating-point approximations and produce non-calendar-accurate (approximate) results,
+especially around month/year boundaries:
 - `YearsBetween`
 - `MonthsBetween`
 - `YearSpan`
