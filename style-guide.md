@@ -95,12 +95,13 @@ procedure SetName(AName: string);  // recommended
 procedure SetName(Name: string);   // acceptable
 ```
 
-### STY-008 (Fail): Language keywords and reserved words must be lowercase.
-Compiler switch directives in {$...} follow the formatting guide (FMT-046).
+### STY-008 (Fail): Language keywords and reserved words are lowercase
+All language keywords and reserved words must be lowercase. Compiler switch directives
+in `{$...}` are UPPERCASE -- see FMT-046.
 
 ```delphi
-begin end if then else  // correct
-Begin End If Then Else  // incorrect
+begin end if then else abstract virtual override  // correct
+Begin End If Then Else Abstract Virtual Override  // incorrect
 ```
 
 ### STY-009 (Warn): Boolean identifier positive naming
@@ -150,7 +151,7 @@ procedure ButtonClickHandler;      // incorrect
 ```
 
 ### STY-013 (Fail): Class constructor named CreateClass
-By convention, class constructors must use the name `CreateClass`.
+Class constructors must use the name `CreateClass`.
 See: https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors
 
 ```delphi
@@ -159,7 +160,7 @@ class constructor Create;       // incorrect
 ```
 
 ### STY-014 (Fail): Class destructor named DestroyClass
-By convention, class destructors must use the name `DestroyClass`.
+Class destructors must use the name `DestroyClass`.
 
 ```delphi
 class destructor DestroyClass;  // correct
@@ -245,8 +246,8 @@ end;
 
 ### STY-021 (Fail): Prohibited DateUtils functions
 The following `System.DateUtils` functions must not be used -- they return imprecise
-floating-point approximations and produce non-calendar-accurate (approximate) results,
-especially around month/year boundaries:
+floating-point approximations and produce non-calendar-accurate results, especially
+around month and year boundaries:
 - `YearsBetween`
 - `MonthsBetween`
 - `YearSpan`
@@ -254,6 +255,15 @@ especially around month/year boundaries:
 
 Use calendar arithmetic via `TDateTime` decomposition or `System.DateUtils` functions
 that operate on whole days (`DaysBetween`, `DayOf`, etc.) instead.
+
+```delphi
+// incorrect
+Age := YearsBetween(BirthDate, Today);
+
+// correct
+Age := YearOf(Today) - YearOf(BirthDate);
+// note: adjust for whether the birthday has occurred yet this year
+```
 
 ### STY-022 (Warn): Multi-line string literals used sparingly
 Multi-line string literals (Delphi 12+) are permitted but should be used sparingly.
@@ -289,8 +299,9 @@ uses SysUtils;         // incorrect
 ```
 
 ### STY-025 (Fail): Units in implementation uses unless required in interface
-Add units to the `implementation` uses clause unless a type from that unit is referenced
-in the `interface` section.
+Add units to the `implementation` uses clause unless any declaration in the `interface`
+section requires it -- this includes types, constants, variables, and procedure
+signatures that reference identifiers from that unit.
 
 ---
 
@@ -365,22 +376,81 @@ For unmanaged types, `const` is not required but is recommended when it improves
 about intent.
 
 ```delphi
-procedure Log(const AMessage: string);   // correct -- managed type, not modified
-procedure SetValue(AValue: Integer);     // acceptable -- unmanaged type
+procedure Log(const AMessage: string);     // correct -- managed type, not modified
+procedure SetValue(AValue: Integer);       // acceptable -- unmanaged type
 procedure SetValue(const AValue: Integer); // also acceptable -- signals intent
 ```
 
 ### STY-035 (Fail): case enum exhaustion
-`case` statements on enum types must list all values explicitly. Use
-`Assert(False, 'Unhandled enum value')` in the `else` branch.
+`case` statements on enum types must list all values explicitly. Raise `ENotImplemented`
+in the `else` branch. Do not use `Assert` alone -- assertions may be disabled in release
+builds, leaving the else branch silently doing nothing.
+
+```delphi
+// correct
+case AStatus of
+  sActive:   HandleActive;
+  sInactive: HandleInactive;
+  sPending:  HandlePending;
+else
+  raise ENotImplemented.CreateFmt('Unhandled TStatus value: %d', [Ord(AStatus)]);
+end;
+
+// incorrect -- Assert alone is not safe if assertions are disabled in release
+case AStatus of
+  sActive:   HandleActive;
+  sInactive: HandleInactive;
+  sPending:  HandlePending;
+else
+  Assert(False, 'Unhandled TStatus value');
+end;
+
+// incorrect -- missing else branch entirely
+case AStatus of
+  sActive:   HandleActive;
+  sInactive: HandleInactive;
+end;
+```
 
 ### STY-036 (Fail): Failure-returning functions use enum not Boolean
 Functions that perform operations which can fail must return an enumerated result type
-rather than `Boolean`.
+rather than `Boolean`. A function returning `Boolean` to signal success or failure
+should instead return an enum that names each possible outcome, allowing callers to
+handle specific failure modes rather than a generic true/false.
+
+```delphi
+// correct
+type
+  TFetchResult = (frSuccess, frTimeout, frNotFound, frUnauthorised);
+
+function Fetch(const AURL: string): TFetchResult;
+
+// incorrect
+function Fetch(const AURL: string): Boolean;
+```
 
 ### STY-037 (Warn): Guard clauses with Exit
 Use guard clauses with `Exit` to reduce nesting. Use `Exit` sparingly outside of
 guard clause context.
+
+```delphi
+// correct -- guard clause reduces nesting
+procedure Process(AValue: Integer);
+begin
+  if AValue <= 0 then
+    Exit;
+  DoWork(AValue);
+end;
+
+// avoid -- unnecessary nesting
+procedure Process(AValue: Integer);
+begin
+  if AValue > 0 then
+  begin
+    DoWork(AValue);
+  end;
+end;
+```
 
 ---
 
@@ -398,7 +468,8 @@ Assert(AValue > 0);                              // incorrect
 Use assertions only for logical invariants -- conditions that must always be true
 regardless of input or execution state (parameter preconditions, object invariants).
 Do not use assertions for input validation, OS conditions, or general error handling.
-Assertions may be disabled in release builds.
+Assertions may be disabled in release builds -- never rely on them as the sole
+enforcement mechanism. 
 
 ---
 
