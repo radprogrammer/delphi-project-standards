@@ -27,8 +27,8 @@ reformatting of existing code, prefer dedicated formatting tools over manual edi
 
 Numbered rules are checkable constraints an agent can evaluate from visible code alone.
 They carry a severity:
-- **Fail** — objective and unambiguous. Must not be violated.
-- **Warn** — strongly preferred. Flag violations but do not block.
+- **Fail** -- objective and unambiguous. Must not be violated.
+- **Warn** -- strongly preferred. Flag violations but do not block.
 
 **Guidance** blocks cover contextual preferences, rationale, and advice that require
 judgment rather than mechanical checking. No rule number is assigned.
@@ -178,7 +178,7 @@ TTestMyClass   // incorrect
 
 ---
 
-Guidance — additional naming conventions (contextual, not mechanically checkable):
+Guidance -- additional naming conventions (contextual, not mechanically checkable):
 - **Enums:** PascalCase, no prefix. Prefer fully qualified references to avoid ambiguity in
   large units. Bare names are acceptable when scope is unambiguous.
 - **Methods:** verb+noun form: `CalculateTotal`, `ValidateInput`.
@@ -384,7 +384,8 @@ procedure SetValue(const AValue: Integer); // also acceptable -- signals intent
 ### STY-035 (Fail): case enum exhaustion
 `case` statements on enum types must list all values explicitly. Raise `ENotImplemented`
 (or project-specific exception) in the `else` branch. Do not use `Assert` alone --
-as assertions may be disabled in release builds, leaving the else branch silently doing nothing.
+assertions may be disabled in release builds, leaving the else branch silently doing
+nothing.
 
 ```delphi
 // correct
@@ -469,7 +470,8 @@ Use assertions only for logical invariants -- conditions that must always be tru
 regardless of input or execution state (parameter preconditions, object invariants).
 Do not use assertions for input validation, OS conditions, or general error handling.
 Assertions may be disabled in release builds -- never rely on them as the sole
-enforcement mechanism.
+enforcement mechanism. For unhandled enum values in `case` statements, use
+`raise ENotImplemented` rather than `Assert` -- see STY-035.
 
 ---
 
