@@ -1,4 +1,4 @@
-﻿# RADProgrammer Delphi Formatting Guide
+# RADProgrammer Delphi Formatting Guide
 - Source: https://github.com/radprogrammer/delphi-project-standards
 - Last updated: 2026-02-22
 

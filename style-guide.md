@@ -1,4 +1,4 @@
-﻿# RADProgrammer Delphi Style Guide
+# RADProgrammer Delphi Style Guide
 - Source: https://github.com/radprogrammer/delphi-project-standards
 - Last updated: 2026-02-22
 
