@@ -2,13 +2,15 @@
 - Source: https://github.com/radprogrammer/delphi-project-standards
 - Last updated: 2026-02-22
 
-- These rules are modeled after Embarcadero's published style guidelines found at:
-  https://docwiki.embarcadero.com/RADStudio/en/Delphi%E2%80%99s_Object_Pascal_Style_Guide
+These rules closely match Embarcadero's published style guidelines:
+https://docwiki.embarcadero.com/RADStudio/en/Delphi%E2%80%99s_Object_Pascal_Style_Guide
 
-Noted differences from their style guide:
-  - They use `PascalCase` for all constants; we use `UPPERCASE` for constants outside classes to preserve historical convention and flag them as candidates for encapsulation
-  - They do not address `with` or `goto` statements, whereas we explicitly prohibit both
-  - They do not address `multi-line string literals`; we recommend using them sparingly due to tooling issues
+Noted differences:
+- We use `UPPERCASE` for constants outside classes to preserve historical convention and flag them as candidates for encapsulation. Embarcadero uses `PascalCase` for all constants.
+- We explicitly prohibit `with` and `goto`. Embarcadero does not address these.
+- We recommend using multi-line string literals sparingly due to tooling maturity. Embarcadero does not address this.
+
+For indentation, spacing, block formatting, and line break rules see `code-formatting-guide.md`.
 
 ---
 
@@ -21,233 +23,442 @@ reformatting of existing code, prefer dedicated formatting tools over manual edi
 
 ---
 
+## How Rules Are Presented
+
+Numbered rules are checkable constraints an agent can evaluate from visible code alone.
+They carry a severity:
+- **Fail** — objective and unambiguous. Must not be violated.
+- **Warn** — strongly preferred. Flag violations but do not block.
+
+**Guidance** blocks cover contextual preferences, rationale, and advice that require
+judgment rather than mechanical checking. No rule number is assigned.
+
+---
+
 ## Naming
 
-All identifiers use PascalCase. No underscores. No Hungarian notation.
+### STY-001 (Fail): PascalCase for all identifiers
+All identifiers must use PascalCase. No underscores between words. No Hungarian notation.
+Exception: constants declared outside a class use UPPERCASE -- see STY-010.
 
-| Identifier            | Prefix / Suffix      | Example                         |
-|-----------------------|----------------------|---------------------------------|
-| Class                 | `T`                  | `TMyClass`                      |
-| Exception class       | `E`                  | `EInvalidOp`                    |
-| Interface             | `I`                  | `IMyInterface`                  |
-| Field                 | `F`                  | `FUserName`                     |
-| Pointer type          | `P`                  | `PInteger`                      |
-| Method parameter      | `A` (recommended)    | `AUserName`                     |
-| Event handler         | `On`                 | `OnMyExampleEvent`              |
-| Event executor        | `Do`                 | `DoMyExampleEvent`              |
-| [Class constructor](https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors) | `CreateClass` | `class constructor CreateClass` |
-| Class destructor      | `DestroyClass`       | `class destructor DestroyClass` |
-| Test class            | suffix `Test`        | `TMyClassTest`                  |
-| Versioned interface   | suffix `2`, `3`...   | `IMyInterface2`                 |
-| Custom Attributes     | end with `Attribute` | `MyExampleAttribute`            |
+```delphi
+MyClassName    // correct
+my_class_name  // incorrect
+lpstrMyName    // incorrect
+```
 
-### Additional Naming Rules
+### STY-002 (Fail): Class names prefix T
+All class type declarations must begin with `T`.
 
-- **Enums:** PascalCase, no prefix. Prefer fully qualified references everywhere. Bare names are acceptable within the declaring unit but should be avoided for consistency.
-- **Constants:** If inside a class, no prefix — reference fully qualified externally. If outside a class, use UPPERCASE.   Constants should be class-scoped where possible.
-- **Booleans:** Positive naming only, using `is`, `has`, `can`, or `should` prefixes (e.g. `IsActive`, not `IsNotActive`).
-- **Methods:** verb+noun form (`CalculateTotal`, `ValidateInput`).
-- **Form components:** Descriptive suffix-based names (`DeleteFileButton`, not `Button1` or `butDelete`).
-- **Arrays/Lists:** Pluralized names; use singular form for the iteration variable.
+```delphi
+TMyClass  // correct
+MyClass   // incorrect
+```
 
-### Event Handler vs Event Executor
+### STY-003 (Fail): Interface names prefix I
+All interface type declarations must begin with `I`.
 
-- `OnButtonClick` — the published event property; wired to an external handler.
-- `DoButtonClick` — the `virtual` method containing the actual logic; called by the event machinery.
-- All `Do`-prefix event executor methods must be declared `virtual` to allow subclass override of logic without replacing event wiring.
+```delphi
+IMyInterface  // correct
+MyInterface   // incorrect
+```
+
+### STY-004 (Fail): Exception class names prefix E
+All exception class declarations must begin with `E`.
+
+```delphi
+EInvalidOp  // correct
+InvalidOp   // incorrect
+```
+
+### STY-005 (Fail): Field names prefix F
+All class and record field declarations must begin with `F`.
+
+```delphi
+FUserName  // correct
+UserName   // incorrect
+```
+
+### STY-006 (Fail): Pointer type names prefix P
+All pointer type declarations must begin with `P`.
+
+```delphi
+PMyRecord   // correct
+MyRecordPtr // incorrect
+```
+
+### STY-007 (Warn): Method parameter prefix A
+Method parameters should begin with `A` to distinguish them from fields and locals.
+
+```delphi
+procedure SetName(AName: string);  // recommended
+procedure SetName(Name: string);   // acceptable
+```
+
+### STY-008 (Fail): Reserved words in lowercase
+Language keywords, reserved words, and directives must be lowercase.
+
+```delphi
+begin end if then else  // correct
+Begin End If Then Else  // incorrect
+```
+
+### STY-009 (Warn): Boolean identifier positive naming
+Boolean-returning functions, properties, and variables should begin with `Is`, `Has`,
+`Can`, or `Should`. Always use positive form -- never negate in the name itself.
+
+```delphi
+IsActive      // correct
+HasChildren   // correct
+Active        // warn -- missing prefix
+IsNotActive   // incorrect -- negated form
+```
+
+### STY-010 (Fail): Constants outside classes use UPPERCASE
+Constants declared outside a class must use UPPERCASE with underscores between words.
+Constants declared inside a class use PascalCase and are referenced fully qualified.
+
+```delphi
+const
+  MAX_RETRY_COUNT: Integer = 3;  // correct -- outside class
+
+type
+  TMyClass = class
+  const
+    DefaultTimeout: Integer = 30;  // correct -- inside class
+  end;
+```
+
+Guidance: Prefer class-scoped constants over unit-level constants. UPPERCASE outside a
+class is a deliberate signal that the constant is a candidate for encapsulation.
+
+### STY-011 (Warn): Event handler prefix On
+Published event properties must begin with `On`.
+
+```delphi
+OnButtonClick  // correct
+ButtonClick    // warn
+```
+
+### STY-012 (Fail): Event executor prefix Do, declared virtual
+Methods that implement event logic must begin with `Do` and be declared `virtual`.
+This allows subclasses to override logic without replacing event wiring.
+
+```delphi
+procedure DoButtonClick; virtual;  // correct
+procedure ButtonClickHandler;      // incorrect
+```
+
+### STY-013 (Fail): Class constructor named CreateClass
+Class constructors must use the name `CreateClass`.
+See: https://docwiki.embarcadero.com/RADStudio/en/Methods_(Delphi)#Class_Constructors
+
+```delphi
+class constructor CreateClass;  // correct
+class constructor Create;       // incorrect
+```
+
+### STY-014 (Fail): Class destructor named DestroyClass
+Class destructors must use the name `DestroyClass`.
+
+```delphi
+class destructor DestroyClass;  // correct
+class destructor Destroy;       // incorrect
+```
+
+### STY-015 (Fail): Test fixture class suffix Tests
+DUnitX test fixture classes must end with `Tests` for clarity in multi-unit test suites.
+
+```delphi
+TMyClassTests  // correct
+TMyClassTest   // incorrect
+TTestMyClass   // incorrect
+```
+
+---
+
+Guidance — additional naming conventions (contextual, not mechanically checkable):
+- **Enums:** PascalCase, no prefix. Prefer fully qualified references to avoid ambiguity in
+  large units. Bare names are acceptable when scope is unambiguous.
+- **Methods:** verb+noun form: `CalculateTotal`, `ValidateInput`.
+- **Form components:** descriptive suffix-based names: `DeleteFileButton` not `Button1`.
+- **Arrays/Lists:** pluralized names; singular form for the iteration variable.
+- **Versioned interfaces:** append `2`, `3`... to the base name: `IMyInterface2`.
+- **Custom Attributes:** end with `Attribute`: `MyExampleAttribute`.
 
 ---
 
 ## Source File Conventions
 
-- **Line endings:** All Delphi source files use CRLF (`\r\n`) line endings.
-- **Encoding:** UTF-8 without BOM, ASCII characters only in source code. AI agents must not use Unicode characters (em dashes, curly quotes, ellipsis, arrows, emoji, or other non-ASCII characters) in identifiers, string literals, or comments unless the feature explicitly requires them — do not substitute fancy Unicode punctuation for plain ASCII equivalents.
-- **Default parameter values** must be repeated verbatim in the implementation section, matching the interface declaration exactly.
+### STY-016 (Fail): CRLF line endings
+All Delphi source files must use CRLF (`\r\n`) line endings.
+
+### STY-017 (Fail): ASCII only in source, UTF-8 without BOM encoding
+Source files must be saved as UTF-8 without BOM. Source file content (identifiers,
+string literals, and comments) must contain only ASCII characters. Do not substitute
+Unicode punctuation (em dashes, curly quotes, ellipsis, arrows, emoji) for plain ASCII
+equivalents.
+
+```delphi
+// correct  -- use double dash for emphasis
+// incorrect -- do not use em dash
+```
+
+### STY-018 (Fail): Default parameter values repeated in implementation
+Default parameter values must be repeated verbatim in the implementation section,
+matching the interface declaration exactly.
+
+```delphi
+// interface
+function Fetch(ATimeout: Cardinal = 5000): Boolean;
+
+// correct implementation
+function TMyClass.Fetch(ATimeout: Cardinal = 5000): Boolean;
+
+// incorrect implementation
+function TMyClass.Fetch(ATimeout: Cardinal): Boolean;
+```
 
 ---
 
-## Spacing and Indentation
+## Language Restrictions
 
-- **Indentation unit:** 2 spaces per level. Never use tabs. The Delphi IDE converts tabs to spaces by default -- leave this setting on.
-- **No space** before the colon in a variable or parameter declaration:
-  ```delphi
-  MyInteger: Integer;   // correct
-  MyInteger : Integer;  // incorrect
-  ```
-- **No space** before the opening parenthesis of a function or procedure call or declaration:
-  ```delphi
-  MyFunc(42);                        // correct
-  procedure DoSomething(A: Integer); // correct
-  MyFunc (42);                       // incorrect
-  ```
-- **No space** inside parentheses or square brackets:
-  ```delphi
-  MyFunc(A, B);    // correct
-  MyArray[5];      // correct
-  MyFunc( A, B );  // incorrect
-  MyArray[ 5 ];    // incorrect
-  ```
-- **Space after** commas and semicolons in parameter lists.
-- **Spaces before and after** the `:=` assignment operator and all binary operators.
-- **Line length:** aim to keep lines within screen width to avoid horizontal scrolling. 120 columns is a practical upper bound for generated code.
+### STY-019 (Fail): with statements forbidden
+`with` statements are prohibited. They obscure scope, create ambiguous identifiers,
+and make refactoring unreliable.
 
----
+```delphi
+// correct
+Canvas.Brush.Color := clRed;
+Canvas.FillRect(Rect);
 
-## begin / end and Block Formatting
+// incorrect
+with Canvas do
+begin
+  Brush.Color := clRed;
+  FillRect(Rect);
+end;
+```
 
-- **`begin` and `end` always on their own lines.** Never place `begin` on the same line as `then`, `do`, or `else`:
-  ```delphi
-  // Correct
-  if A < B then
-  begin
-    DoSomething;
-  end
-  else
-  begin
-    DoThat;
-  end;
+### STY-020 (Fail): goto statements forbidden
+`goto` statements are prohibited without exception.
 
-  // Incorrect
-  if A < B then begin
-    DoSomething;
-  end else begin
-    DoThat;
-  end;
-  ```
-- Each line contains at most one statement.
+### STY-021 (Fail): Prohibited DateUtils functions
+The following `System.DateUtils` functions must not be used -- they return imprecise
+floating-point approximations and produce incorrect results near month and year
+boundaries:
+- `YearsBetween`
+- `MonthsBetween`
+- `YearSpan`
+- `MonthSpan`
+
+Use calendar arithmetic via `TDateTime` decomposition or `System.DateUtils` functions
+that operate on whole days (`DaysBetween`, `DayOf`, etc.) instead.
+
+### STY-022 (Warn): Multi-line string literals used sparingly
+Multi-line string literals (Delphi 12+) are permitted but should be used sparingly.
+Tooling support (search, diff, static analysis) remains uneven. Prefer conventional
+string concatenation for content that must be searchable or machine-processed.
 
 ---
 
-## if Statements
+## Declarations
 
-- **Always span at least two lines.** Never place the statement on the same line as the condition:
-  ```delphi
-  // Correct
-  if A < B then
-    DoSomething;
+### STY-023 (Fail): One declaration per line
+Each variable or constant declaration must appear on its own line. Multiple identifiers
+on one line make version control diffs harder to read and review.
 
-  // Incorrect
-  if A < B then DoSomething;
-  ```
-- **No extra parentheses** around boolean conditions:
-  ```delphi
-  if A < B then    // correct
-  if (A < B) then  // incorrect
-  ```
-- **`else if` stays on one line** -- no line break between `else` and `if`:
-  ```delphi
-  if Condition1 then
-    DoThis
-  else if Condition2 then
-    DoThat;
-  ```
+```delphi
+// correct
+var
+  MyData: Integer;
+  MyString: string;
 
----
+// incorrect
+var
+  MyData, MyOtherData: Integer;
+```
 
-## Source File Layout Order
+### STY-024 (Fail): Fully qualified unit references
+All unit references must use fully qualified names. The **Unit Scope Names** project
+setting must be empty. Auto-generated and third-party code are exempt.
 
-Most of your Delphi code will reside in .pas source files. These files have a few requirements determined by the compiler and also some preferences dictated by this style guide.
+```delphi
+uses System.SysUtils;  // correct
+uses SysUtils;         // incorrect
+```
 
-1. Comment header (description, copyright, history)
-2. `interface` section — one class per unit; paired classes are the exception
-3. Class body order: `const` -> `Fields` -> `Methods` -> `Properties`, grouped by visibility
-4. Declaration block order: `const` -> `type` -> `var` -> methods
-5. `implementation` section: instance `constructor` and `destructor` listed first
-6. `class constructor CreateClass` and `class destructor DestroyClass` implementations at the bottom of the `implementation` section, above any `initialization`/`finalization` blocks
-7. `initialization` / `finalization` always last
+### STY-025 (Fail): Units in implementation uses unless required in interface
+Add units to the `implementation` uses clause unless a type from that unit is referenced
+in the `interface` section.
 
 ---
 
-## Avoid these language items
-- `with` statements
-- `goto` statements
-- Multi-line string literals (Delphi 12+)
-- `System.DateUtils`: `YearsBetween`, `MonthsBetween`, `YearSpan`, `MonthSpan`
+## Constants
+
+### STY-026 (Fail): Untyped constants when used as default parameter values
+Constants used as default parameter values must be untyped. Add a comment explaining why.
+
+```delphi
+const
+  DEFAULT_TIMEOUT = 5000;  // Untyped -- required as default parameter value.
+                            // Typed constants do not satisfy Delphi's constant
+                            // expression requirement for default parameters.
+```
+
+### STY-027 (Fail): Named constants replace magic numbers
+Magic numbers must be replaced with named constants. Each constant must include a comment
+explaining why that specific value was chosen.
+
+```delphi
+const
+  MAX_RETRY_COUNT: Integer = 3;  // Three retries balances reliability and latency.
+```
+
+### STY-028 (Fail): Explicitly typed constants except default parameter values
+Constants must always be explicitly typed, except when used as a default parameter value
+(see STY-026).
 
 ---
 
-## Project Structure Conventions
+## Integer and Timing Arithmetic
 
-- Every `.dpr` project must live in its own dedicated directory.
-- Each project directory must contain a `readme.md` serving as its entry-point documentation.
-- The corresponding `.dproj` must reference the readme.md via the `WelcomePageFile`
-  element so it is displayed when the project is opened within the IDE:
-  ```xml
-  <Delphi.Personality>
-    <Source>
-      <Source Name="MainSource">MyProject.dpr</Source>
-    </Source>
-    <WelcomePageFile Path="readme.md"/>
-  </Delphi.Personality>
-  ```
-  This can also be set via `Project -> Project Page Options... -> Project page`
-  within the IDE.
+### STY-029 (Fail): TStopwatch for elapsed time measurement
+Use `TStopwatch` for all elapsed time measurement. Never use `GetTickCount` or
+`TThread.GetTickCount` -- they are not monotonic and wrap after ~49 days.
 
----
+### STY-030 (Fail): Int64 arithmetic for TStopwatch values
+Never cast `TStopwatch.ElapsedMilliseconds` (which is `Int64`) to `Cardinal` before
+arithmetic. Perform all arithmetic in `Int64` space and narrow only at the final
+assignment after a guard confirms safety.
 
-## Version Control
+```delphi
+// correct
+Elapsed := Sw.ElapsedMilliseconds;
+if Elapsed >= MaxMs then Exit(False);
+Remaining := Cardinal(MaxMs - Elapsed);  // safe: Elapsed < MaxMs guaranteed
 
-- Refactoring-only changes must be committed separately from logic changes.
-- Tests must pass after any refactoring commit before logic changes are introduced.
+// incorrect
+Remaining := Cardinal(Sw.ElapsedMilliseconds) - MaxMs;  // overflow risk
+```
+
+### STY-031 (Fail): Guard Cardinal subtraction
+Always guard before subtracting two `Cardinal` values. Unsigned underflow is silent
+without overflow checking and raises `EIntOverflow` with it enabled.
 
 ---
 
 ## Code Rules
 
-- Access fields via properties, not directly. Exception: inside the owning class constructor.
-- Use `const` for parameters of managed types (strings, interfaces) that are not modified. For unmanaged types, const is not required but is recommended when it improves clarity about intent.
-- Use guard clauses with `Exit` to reduce nesting. Use `Exit` sparingly outside of guard clauses.
-- `case` statements on enums must list all values explicitly. Use `Assert(False, 'Unhandled enum value')` in the `else` branch.
-- Functions that perform operations which can fail must return an enumerated result type rather than `Boolean`.
-- `uses` clause order: RTL -> System Library -> VCL/FMX -> Third Party -> Shared -> Project-specific.
-- Add units to the `implementation` uses clause unless they are required in the `interface`.
-- The **Unit Scope Names** project setting should be empty. All unit references should be fully qualified (e.g. `System.SysUtils`, not `SysUtils`). Auto-generated and third-party code are exempt.
-- Do not declare multiple identifiers of the same type on a single line. Each declaration belongs on its own line. Multiple declarations on one line make version control diffs harder to read and review:
-  ```delphi
-  // Correct
-  var
-    MyData: Integer;
-    MyString: string;
+### STY-032 (Fail): No platform-specific units without explicit requirement
+Do not use platform-specific units (e.g. `Winapi.*`) unless the feature explicitly
+requires them. Code should target all RTL-supported platforms unless the project
+`CLAUDE.md` states otherwise.
 
-  // Incorrect
-  var
-    MyData, MyOtherData: Integer;
-  ```
+### STY-033 (Fail): Fields accessed via properties
+Access fields via properties, not directly. Exception: inside the owning class
+constructor.
 
-### Assertions
+### STY-034 (Warn): const parameters for managed types
+Use `const` for parameters of managed types (strings, interfaces) that are not modified.
+For unmanaged types, `const` is not required but is recommended when it improves clarity
+about intent.
 
-- Use assertions to test logical invariants -- conditions that must always be true regardless of input or execution state, such as parameter preconditions and object invariants.
-- Always include an explanatory string describing which expected condition is failing:
-  ```delphi
-  Assert(AValue > 0, 'AValue must be positive');
-  ```
-- Do not use assertions to test conditions that depend on program execution, user input, OS configuration, or any general error condition. Use exceptions for those cases.
-- Assertions may be disabled in release builds -- never rely on them for runtime error handling in production code.
+```delphi
+procedure Log(const AMessage: string);   // correct -- managed type, not modified
+procedure SetValue(AValue: Integer);     // acceptable -- unmanaged type
+procedure SetValue(const AValue: Integer); // also acceptable -- signals intent
+```
 
-### Constants
+### STY-035 (Fail): case enum exhaustion
+`case` statements on enum types must list all values explicitly. Use
+`Assert(False, 'Unhandled enum value')` in the `else` branch.
 
-- Magic numbers in code must be replaced with named constants. Each named constant should include a comment explaining why that specific value was chosen over alternatives.
-- Constants should always be explicitly typed **except** when used as a default parameter value, in which case they must be untyped. Add a comment at the declaration explaining the exception:
-  ```delphi
-  const
-    MAX_RETRIES = 3;  // Untyped -- required because used as a default parameter value.
-                      // Delphi requires default parameter values to be constant expressions;
-                      // typed constants do not satisfy this requirement.
-  ```
+### STY-036 (Fail): Failure-returning functions use enum not Boolean
+Functions that perform operations which can fail must return an enumerated result type
+rather than `Boolean`.
 
-### Integer and Timing Arithmetic
+### STY-037 (Warn): Guard clauses with Exit
+Use guard clauses with `Exit` to reduce nesting. Use `Exit` sparingly outside of
+guard clause context.
 
-- `TStopwatch` is the preferred timing mechanism — it is monotonic and has no wraparound. Never use `GetTickCount` or `TThread.GetTickCount` for elapsed time measurement.
-- Never perform arithmetic on `TStopwatch.ElapsedMilliseconds` (which is `Int64`) using `Cardinal` variables. Perform all arithmetic in `Int64` space and only narrow to `Cardinal` at the final assignment, after a guard confirms the value fits:
-  ```delphi
-  Elapsed := Sw.ElapsedMilliseconds;       // Int64
-  if Elapsed >= MaxMs then Exit(False);
-  Remaining := Cardinal(MaxMs - Elapsed);  // safe: Elapsed < MaxMs guaranteed
-  ```
-- `Cardinal` subtraction can underflow silently (or raise `EIntOverflow` with overflow checking enabled). Always guard before subtracting two `Cardinal` values.
+---
 
-### Platform Targeting
+## Assertions
 
-- Do not use platform-specific units (e.g. `Winapi.*`) unless the feature explicitly requires them. Code should target all RTL-supported platforms unless the project `CLAUDE.md` states otherwise.
+### STY-038 (Fail): Assertions include explanatory string
+Every `Assert` call must include a string explaining which expected condition is failing.
+
+```delphi
+Assert(AValue > 0, 'AValue must be positive');  // correct
+Assert(AValue > 0);                              // incorrect
+```
+
+### STY-039 (Fail): Assertions for invariants only
+Use assertions only for logical invariants -- conditions that must always be true
+regardless of input or execution state (parameter preconditions, object invariants).
+Do not use assertions for input validation, OS conditions, or general error handling.
+Assertions may be disabled in release builds.
+
+---
+
+## Project Structure
+
+### STY-040 (Fail): One project per directory
+Every `.dpr` project must live in its own dedicated directory. No two projects may
+share a directory.
+
+### STY-041 (Fail): readme.md required per project
+Each project directory must contain a `readme.md` serving as its entry-point
+documentation.
+
+### STY-042 (Fail): .dproj references readme.md as WelcomePageFile
+The `.dproj` must reference `readme.md` via the `WelcomePageFile` element so it is
+displayed when the project is opened in the IDE:
+
+```xml
+<Delphi.Personality>
+  <Source>
+    <Source Name="MainSource">MyProject.dpr</Source>
+  </Source>
+  <WelcomePageFile Path="readme.md"/>
+</Delphi.Personality>
+```
+
+This can also be set via `Project -> Project Page Options... -> Project page` in the IDE.
+
+---
+
+## Source File Layout Order
+
+Guidance: The compiler enforces some ordering; this guide enforces the rest for
+consistency. Recommended unit layout:
+
+1. Comment header (description, copyright, history)
+2. `unit` declaration
+3. `interface` uses clause
+4. `type` / `const` / `var` -- one class per unit; paired classes are the exception
+5. Class body order: `const` → fields → methods → properties, grouped by visibility
+6. Declaration block order: `const` → `type` → `var` → methods
+7. `implementation` uses clause
+8. Instance `constructor` and `destructor` listed first
+9. `class constructor CreateClass` and `class destructor DestroyClass` at the bottom
+   of the implementation section, above any `initialization`/`finalization` blocks
+10. `initialization` / `finalization` always last
+
+---
+
+## Version Control
+
+Guidance:
+- Refactoring-only changes must be committed separately from logic changes.
+- Tests must pass after any refactoring commit before logic changes are introduced.
+
+---
+
+## uses Clause Order
+
+Guidance: Order units in `uses` clauses as follows:
+RTL → System Library → VCL/FMX → Third Party → Shared → Project-specific.
 
 ---
