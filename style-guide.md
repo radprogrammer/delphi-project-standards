@@ -95,7 +95,7 @@ procedure SetName(AName: string);  // recommended
 procedure SetName(Name: string);   // acceptable
 ```
 
-### STY-008 (Fail): Language keywords and reserved words are lowercase
+### STY-008 (Fail): Language keywords, reserved words, and language directives are lowercase
 All language keywords and reserved words must be lowercase. Compiler switch directives
 in `{$...}` are UPPERCASE -- see FMT-046.
 
@@ -383,8 +383,8 @@ procedure SetValue(const AValue: Integer); // also acceptable -- signals intent
 
 ### STY-035 (Fail): case enum exhaustion
 `case` statements on enum types must list all values explicitly. Raise `ENotImplemented`
-in the `else` branch. Do not use `Assert` alone -- assertions may be disabled in release
-builds, leaving the else branch silently doing nothing.
+(or project-specific exception) in the `else` branch. Do not use `Assert` alone --
+as assertions may be disabled in release builds, leaving the else branch silently doing nothing.
 
 ```delphi
 // correct
@@ -469,7 +469,7 @@ Use assertions only for logical invariants -- conditions that must always be tru
 regardless of input or execution state (parameter preconditions, object invariants).
 Do not use assertions for input validation, OS conditions, or general error handling.
 Assertions may be disabled in release builds -- never rely on them as the sole
-enforcement mechanism. 
+enforcement mechanism.
 
 ---
 
@@ -509,8 +509,8 @@ consistency. Recommended unit layout:
 2. `unit` declaration
 3. `interface` uses clause
 4. `type` / `const` / `var` -- one class per unit; paired classes are the exception
-5. Class body order: `const` → fields → methods → properties, grouped by visibility
-6. Declaration block order: `const` → `type` → `var` → methods
+5. Class body order: `const` -> fields -> methods -> properties, grouped by visibility
+6. Declaration block order: `const` -> `type` -> `var` -> methods
 7. `implementation` uses clause
 8. Instance `constructor` and `destructor` listed first
 9. `class constructor CreateClass` and `class destructor DestroyClass` at the bottom
@@ -530,6 +530,6 @@ Guidance:
 ## uses Clause Order
 
 Guidance: Order units in `uses` clauses as follows:
-RTL → System Library → VCL/FMX → Third Party → Shared → Project-specific.
+RTL -> System Library -> VCL/FMX -> Third Party -> Shared -> Project-specific.
 
 ---
